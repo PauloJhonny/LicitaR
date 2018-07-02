@@ -1,0 +1,17 @@
+Package: LicitaR
+Title: Repositório de dados de fontes públicas que auxiliam na análise de fraudes em licitações dos municípios do Paraná.
+Version: 0.0.1
+Authors@R: person("Paulo Jhonny", "Scheleder", email = "paulosilenthill@hotmail.com", role = c("aut", "cre"))
+Description: Extrai e trata dados de fontes públicas que auxiliam na análise de fraudes em licitações dos municípios do Paraná. Dentre as fontes estão: Tribunal de Contas do Estado do Paraná, Receita Federal do Brasil, Tribunal Superior Eleitoral e Portal de Transparência Federal.
+Depends: R (>= 3.4.1)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Imports: downloader,
+    dplyr,
+    httr,
+    stringr,
+    data.table,
+    xml2, 
+    jsonlite
