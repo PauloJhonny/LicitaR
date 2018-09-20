@@ -71,8 +71,8 @@ scraper_licitacao <- function(ano = c(2013:2017),
 #'
 #' Recebe um dataframe com apenas uma coluna de CNPJ's e retorna uma lista com quatro elementos: dados gerais das empresas,
 #' atividades principais, atividades secundárias e quadros societários. Obs.: a função pode demorar para retornar os
-#' resultados devido ao fato de a API ter uma limitação de apenas 20 CNPJ's por consulta. Além disso, a cada 20 CNPJ's
-#' consultados, é necessário aguardar 40 segundos para realizar nova consulta, senão ocorre timeout.
+#' resultados devido ao fato de a API ter uma limitação de apenas 3 CNPJ's por minuto. Por isso, a cada 3 CNPJ's
+#' consultados, é necessário aguardar 60 segundos para realizar nova consulta, senão ocorre timeout.
 #'
 #' @importFrom magrittr %>%
 #'
@@ -105,7 +105,7 @@ scraper_empresas <- function(cnpj_data_frame){
 
       # faz uma requisição para a URL criada
       req <- try(url_empresa %>%
-                   httr::GET(httr::timeout(2)), silent = TRUE)
+                   httr::GET())
 
       # verifica se a requisição foi realizada ou se ocorreu um erro. Se ocorrer erro, significa que a requisição
       # não foi bem sucedida devido a não existência de dados para o CNPJ ou a requisição demorou para retornar
@@ -133,39 +133,44 @@ scraper_empresas <- function(cnpj_data_frame){
 
         } else {
 
-          # extrai os dados do CNPJ e salva em uma lista
-          dados <- url_empresa %>%
-            jsonlite::fromJSON()
+          # # extrai os dados do CNPJ e salva em uma lista
+          # dados <-  url_empresa %>%
+          #   jsonlite::fromJSON()
+
+          atvp <- as.data.frame(cont$atividade_principal)
+          atvs <- data.table::rbindlist(cont$atividades_secundarias, fill = TRUE)
+          qsa <- data.table::rbindlist(cont$qsa, fill = TRUE)
 
           # dados da atividade principal da empresa
-          if(nrow(data.frame(dados$atividade_principal)) == 0){
+          if(nrow(atvp) == 0){
             atividade_principal[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], text = "", code = "")
           } else {
-            atividade_principal[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], dados$atividade_principal)
+            atividade_principal[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], atvp)
           }
 
           # dados das atividades secundárias da empresa
-          if(nrow(data.frame(dados$atividades_secundarias)) == 0){
+          if(nrow(atvs) == 0){
             atividade_secundaria[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], text = "", code = "")
           } else {
-            atividade_secundaria[[i]] <- data.frame(cnpj = rep(cnpj_data_frame$cnpj[i], nrow(dados$atividades_secundarias)), dados$atividades_secundarias)
+            atividade_secundaria[[i]] <- data.frame(cnpj = rep(cnpj_data_frame$cnpj[i], nrow(atvs)), atvs)
           }
 
           # dados do quadro societário da empresa
-          if(nrow(data.frame(dados$qsa)) == 0){
+          if(nrow(qsa) == 0){
             quadro_societario[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], qual = "", nome = "")
           } else {
-            quadro_societario[[i]] <- data.frame(cnpj = rep(cnpj_data_frame$cnpj[i], nrow(dados$qsa)), dados$qsa)
+            quadro_societario[[i]] <- data.frame(cnpj = rep(cnpj_data_frame$cnpj[i], nrow(qsa)), qsa)
           }
 
           # exclui os data frames da lista para poder tranformá-la em data frame e criar os dados gerais da empresa
-          dados$atividade_principal <- NULL
-          dados$atividades_secundarias <- NULL
-          dados$qsa <- NULL
-          dados$extra <- NULL
+          cont$atividade_principal <- NULL
+          cont$atividades_secundarias <- NULL
+          cont$qsa <- NULL
+          cont$extra <- NULL
+          cont$billing <- NULL
 
           # dados gerais da empresa
-          dados_gerais[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], as.data.frame(dados))
+          dados_gerais[[i]] <- data.frame(cnpj = cnpj_data_frame$cnpj[i], as.data.frame(cont))
         }
       }
     }
@@ -181,12 +186,12 @@ scraper_empresas <- function(cnpj_data_frame){
   }
 
   # a função pode demorar para retornar os resultados devido ao fato de a API ter uma limitação de apenas
-  # 20 CNPJ's por consulta. Além disso, a cada 20 CNPJ's consultados, é necessário aguardar 40 segundos para
+  # 3 CNPJ's por minuto. Por isso, a cada 3 CNPJ's consultados, é necessário aguardar 60 segundos para
   # realizar nova consulta, senão ocorre timeout.
 
   # marcadores
   j=1
-  w=20
+  w=3
 
   # verifica a nomenclatura dos CNPJ's
   cnpj_data_frame <- cnpj_data_frame %>%
@@ -194,14 +199,14 @@ scraper_empresas <- function(cnpj_data_frame){
     dplyr::select(cnpj)
 
   # cria listas para receber os resultados
-  cnpj_dados_gerais_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/20))
-  cnpj_atividade_principal_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/20))
-  cnpj_atividade_secundaria_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/20))
-  cnpj_quadro_societario_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/20))
+  cnpj_dados_gerais_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/3))
+  cnpj_atividade_principal_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/3))
+  cnpj_atividade_secundaria_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/3))
+  cnpj_quadro_societario_list <- rep(list(""), ceiling(nrow(cnpj_data_frame)/3))
 
-  # aplica a função scraper_empresas_ind para cada data frame de tamanho 20 e salva os resultados em cada lista
+  # aplica a função scraper_empresas_ind para cada data frame de tamanho 3 e salva os resultados em cada lista
   # criada acima
-  for(i in 1:ceiling(nrow(cnpj_data_frame)/20)){
+  for(i in 1:ceiling(nrow(cnpj_data_frame)/3)){
 
     data <- data.frame(cnpj = as.character(cnpj_data_frame[j:w, "cnpj"])) %>% dplyr::filter(!is.na(cnpj))
     cnpj_data_frame_all <- scraper_empresas_ind(data)
@@ -210,13 +215,13 @@ scraper_empresas <- function(cnpj_data_frame){
     cnpj_atividade_secundaria_list[[i]] <- cnpj_data_frame_all[[3]]
     cnpj_quadro_societario_list[[i]] <- cnpj_data_frame_all[[4]]
 
-    j = j+20
-    w = w+20
+    j = j+3
+    w = w+3
 
-    # devido à limitação da API, foi setado para aguardar 40 segundos para fazer nova requisição de 20 CNPJ's
-    if(ceiling(nrow(cnpj_data_frame)/20)>1){
+    # devido à limitação da API, foi setado para aguardar 60 segundos para fazer nova requisição de 3 CNPJ's
+    if(ceiling(nrow(cnpj_data_frame)/3)>1){
 
-      Sys.sleep(40)
+      Sys.sleep(60)
 
     } else {NULL}
 
@@ -404,7 +409,7 @@ prep_large_xml_venc <- function(ano = 2013,
 
   path <- paste(system.file(package="LicitaR"), "prep_large_xml_venc.py", sep="/")
   command <- paste("python", path, ano, cod_mun_ibge, path_xml, path_df, encoding)
-  system(command, intern=T)
+  system(command, intern = T)
 
 }
 
