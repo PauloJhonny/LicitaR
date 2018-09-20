@@ -12,8 +12,8 @@ scraper_empresas(cnpj_data_frame)
 \description{
 Recebe um dataframe com apenas uma coluna de CNPJ's e retorna uma lista com quatro elementos: dados gerais das empresas,
 atividades principais, atividades secundárias e quadros societários. Obs.: a função pode demorar para retornar os
-resultados devido ao fato de a API ter uma limitação de apenas 20 CNPJ's por consulta. Além disso, a cada 20 CNPJ's
-consultados, é necessário aguardar 40 segundos para realizar nova consulta, senão ocorre timeout.
+resultados devido ao fato de a API ter uma limitação de apenas 3 CNPJ's por minuto. Por isso, a cada 3 CNPJ's
+consultados, é necessário aguardar 60 segundos para realizar nova consulta, senão ocorre timeout.
 }
 \examples{
 scraper_empresas(data.frame(cnpj = "00543679000165"))
