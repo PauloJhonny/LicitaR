@@ -6,8 +6,7 @@ import sys
 def transf_large_xml(ano,
                      cod_ibge_mun,
                      path_xml,
-                     path_df,
-                     encoding):
+                     path_df):
 
     import xml.etree.cElementTree as et
     import pandas as pd
@@ -37,11 +36,10 @@ def transf_large_xml(ano,
 
     df_xml = pd.DataFrame(xml_data, columns=dfcols)
 
-    df_xml.to_csv(str(path_df) + "/" + str(ano) + '_licitacaovencedor_' + str(cod_ibge_mun) + '.txt', header=True, index=False, sep=';', mode='w', encoding = encoding)
+    df_xml.to_csv(str(path_df) + "/" + str(ano) + '_licitacaovencedor_' + str(cod_ibge_mun) + '.txt', header=True, index=False, sep=';', mode='w')
 
 if __name__ == "__main__":
     transf_large_xml(ano = int(sys.argv[1]),
                      cod_ibge_mun = str(sys.argv[2]),
                      path_xml = str(sys.argv[3]),
-                     path_df = str(sys.argv[4]),
-                     encoding = str(sys.argv[5]))
+                     path_df = str(sys.argv[4]))

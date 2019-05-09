@@ -398,17 +398,16 @@ prep_xml_licitacao <- function(ano = c(2013:2017),
 prep_large_xml_venc <- function(ano = 2013,
                                 cod_mun_ibge = "411520",
                                 path_xml,
-                                path_df,
-                                encoding = "latin1") {
+                                path_df) {
 
   if(length(ano) == 0 | length(ano) > 1) stop("É necessário selecionar um dos anos entre 2013 e 2017!")
   if(length(cod_mun_ibge) == 0 | length(cod_mun_ibge) > 1) stop("É necessário selecionar um código de município entre os 399 disponíveis!")
   if(path_xml == "") stop("É necessário indicar um caminho para os arquivos XML!")
   if(path_df == "") stop("É necessário indicar um caminho para salvar os arquivos!")
-  if(length(encoding) == 0 | length(encoding) > 1) stop("É necessário selecionar um tipo de codificação para os dados!")
+  #if(length(encoding) == 0 | length(encoding) > 1) stop("É necessário selecionar um tipo de codificação para os dados!")
 
   path <- paste(system.file(package="LicitaR"), "prep_large_xml_venc.py", sep="/")
-  command <- paste("python", path, ano, cod_mun_ibge, path_xml, path_df, encoding)
+  command <- paste("python", path, ano, cod_mun_ibge, path_xml, path_df)
   system(command, intern = T)
 
 }

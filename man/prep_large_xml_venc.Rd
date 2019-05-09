@@ -4,8 +4,7 @@
 \alias{prep_large_xml_venc}
 \title{Transformação de grandes arquivos XML do tema LicitacaoVencedor obtidos via função 'scraper_licitacao' em data frames.}
 \usage{
-prep_large_xml_venc(ano = 2013, cod_mun_ibge = "411520", path_xml, path_df,
-  encoding = "latin1")
+prep_large_xml_venc(ano = 2013, cod_mun_ibge = "411520", path_xml, path_df)
 }
 \arguments{
 \item{ano}{ano da licitação/contrato. Default: 2013.}
@@ -14,9 +13,9 @@ prep_large_xml_venc(ano = 2013, cod_mun_ibge = "411520", path_xml, path_df,
 
 \item{path_df}{local para salvar a base de dados.}
 
-\item{encoding}{codificação do arquivo. Default: "latin1".}
-
 \item{cod_ibge_mun}{códigos dos municípios do PR. Default: "411520".}
+
+\item{encoding}{codificação do arquivo. Default: "latin1".}
 }
 \description{
 Transformação de grandes arquivos XML do tema LicitacaoVencedor obtidos via função 'scraper_licitacao' em data frames.
